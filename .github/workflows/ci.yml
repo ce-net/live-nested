@@ -11,7 +11,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, ubuntu-24.04-arm]
+        include:
+          - os: ubuntu-24.04-arm
+            box: bwrap      # the arm runner allows user namespaces: boxes are real here
+          - os: ubuntu-latest
+            box: ""         # bwrap when this runner allows it, else none
     runs-on: ${{ matrix.os }}
     timeout-minutes: 30
     steps:
@@ -22,8 +26,9 @@ jobs:
         run: |
           sudo apt-get update -q && sudo apt-get install -yq bubblewrap
           sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0 || true
-      - name: chains and the whole tree in boxes (bwrap)
-        run: NEST_BOX=bwrap cargo test --release --locked -- --nocapture
+          sudo sysctl -w kernel.apparmor_restrict_unprivileged_unconfined=0 || true
+      - name: chains and the whole tree in boxes
+        run: NEST_BOX=${{ matrix.box }} cargo test --release --locked -- --nocapture
       - name: the whole tree without boxes (none)
         run: NEST_BOX=none cargo test --release --locked --test tree
       - name: binaries

@@ -20,7 +20,7 @@ fn ask(addr: &str, v: Value) -> Value {
 
 #[test]
 fn add_note_through_two_boxes_and_four_refusals() {
-    let iso = std::env::var("NEST_BOX").unwrap_or_else(|_| if bwrap_works() { "bwrap".into() } else { "none".into() });
+    let iso = std::env::var("NEST_BOX").ok().filter(|s| !s.is_empty()).unwrap_or_else(|| if bwrap_works() { "bwrap".into() } else { "none".into() });
     let home = std::env::temp_dir().join(format!("live-nested-test-{}", std::process::id()));
     let mut outer = Command::new(env!("CARGO_BIN_EXE_nest"))
         .args(["outer", "--listen", "127.0.0.1:0", "--ttl", "120", "--box", &iso, "--home"]).arg(&home)

@@ -42,7 +42,6 @@ struct Outer {
     l0: ce_net_proto::v3::Link,
     door: Conn<std::os::unix::net::UnixStream>,
     door_key: ce_net_proto::v3::Key,
-    names: Names,
     iso: Iso,
     last: Option<DoResult>,
 }
@@ -70,7 +69,6 @@ fn outer(a: &[String]) {
     door_args.extend(names.args());
     let boxed = start_box(iso, &exe_dir, &home.join("a7"), &door_args).unwrap_or_else(|e| fail(&e));
     let (door, door_key) = dial(&boxed.sock).unwrap_or_else(|e| fail(&e));
-    names.add(&door_key, "door a7");
     let l = TcpListener::bind(&listen).unwrap_or_else(|e| fail(&format!("listen {listen}: {e}")));
     println!("listening {} box {} ttl {ttl}s", l.local_addr().map(|x| x.to_string()).unwrap_or_default(), iso.name());
     std::io::stdout().flush().ok();
@@ -80,7 +78,7 @@ fn outer(a: &[String]) {
         eprintln!("nest.outer: ttl {ttl}s reached, stopping the tree");
         std::process::exit(0);
     });
-    let mut o = Outer { me, l0, door, door_key, names, iso, last: None };
+    let mut o = Outer { me, l0, door, door_key, iso, last: None };
     for s in l.incoming().flatten() {
         s.set_read_timeout(Some(Duration::from_secs(30))).ok();
         let mut c = Conn::new(s);
@@ -168,14 +166,19 @@ impl Outer {
                 {"how": "nest.outer hands door a7 its own unscoped chain and asks for notes.app:add", "result": direct},
             ]
         }));
-        let links = vec![self.l0.clone(), self.l1()];
-        out.push(json!({"name": "an inner cell calling outside its uplink", "attempts": self.into_box("notes.agent", "ProbeUplink", json!({}), &links)["attempts"].clone()}));
-        let links = vec![self.l0.clone(), self.l1()];
-        out.push(json!({"name": "a right wider than delegated", "attempts": self.into_box("notes.agent", "WiderRight", json!({}), &links)["attempts"].clone()}));
-        let links = vec![self.l0.clone(), self.l1()];
-        out.push(json!({"name": "box a7/b2 reaching the network", "attempts": self.into_box("calc.run", "ProbeNet", json!({}), &links)["attempts"].clone()}));
+        for (name, cell, op) in [
+            ("an inner cell calling outside its uplink", "notes.agent", "ProbeUplink"),
+            ("a right wider than delegated", "notes.agent", "WiderRight"),
+            ("box a7/b2 reaching the network", "calc.run", "ProbeNet"),
+        ] {
+            let links = vec![self.l0.clone(), self.l1()];
+            let r = self.into_box(cell, op, json!({}), &links);
+            // an answer without attempts is a refusal of the probe itself: show it rather than hide it
+            let attempts = r.get("attempts").cloned().unwrap_or_else(|| json!([{"how": format!("{cell} {op}"), "result": r, "unexpected": true}]));
+            out.push(json!({"name": name, "attempts": attempts}));
+        }
         let all_refused = out.iter().all(|r| {
-            r["attempts"].as_array().is_some_and(|a| !a.is_empty() && a.iter().all(|x| x["result"].get("refused").is_some() || x["refused"].as_bool() == Some(true)))
+            r["attempts"].as_array().is_some_and(|a| !a.is_empty() && a.iter().all(|x| x.get("unexpected").is_none() && x["result"].get("refused").is_some()))
         });
         json!({ "isolation": self.iso.name(), "all_refused": all_refused, "refusals": out })
     }
@@ -327,7 +330,7 @@ impl Door {
             ("notes.agent", "ListNotes") => self.list_notes(links),
             ("notes.agent", "ProbeUplink") => Ok(self.probe_uplink(links)),
             ("notes.agent", "WiderRight") => Ok(self.wider_right(links)),
-            ("calc.run", "ProbeNet") => self.calc_run(links, "ProbeNet", json!({})),
+            ("calc.run", "ProbeNet") => self.agent_link(&links).and_then(|c| self.calc_run(c, "ProbeNet", json!({}))),
             ("calc.exec", "Eval") => self.calc_exec(links, c.args["expr"].as_str().unwrap_or("")),
             ("calc.exec", "ProbeNet") => self.calc_probe(links),
             (cell, op) => Err(format!("door {}: no {cell} {op} in this box", self.path.join("/"))),
