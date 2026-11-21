@@ -1,1 +1,319 @@
-{"recorded": "not yet", "node": "-", "caller": "-", "commit": "-", "request": "-", "do": {"note": {"id": "-", "text": "-"}, "calc": {"expr": "-", "value": "-"}, "levels": [], "isolation": "-", "ms": 0}, "prove": {"refusals": [], "all_refused": "-"}, "idle": null}
+{
+ "recorded": "2026-11-21 06:30 UTC",
+ "node": "foreman-ops-1 (aarch64, Debian 12, bubblewrap 0.8.0), systemd --user unit live-nested",
+ "caller": "debian (x86_64), a second machine, over the tailnet: nest call 100.122.10.18:7795",
+ "commit": "ce-net/live-nested 2f4e704, binaries from CI run 44875656268",
+ "request": "nest call 100.122.10.18:7795 '{\"Do\":{\"AddNote\":{\"text\":\"order 3*4 bolts\"}}}'",
+ "do": {
+  "calc": {
+   "expr": "3*4",
+   "value": 12
+  },
+  "isolation": "bwrap",
+  "levels": [
+   {
+    "ability": "notes.app:add",
+    "cell": "notes.app",
+    "chain": [
+     {
+      "abilities": [],
+      "depth": 6,
+      "expires_in_s": 1013,
+      "from": "owner",
+      "may_grant": [
+       "notes.app:add",
+       "notes.app:list",
+       "calc.exec:eval",
+       "net:connect"
+      ],
+      "scope": "any",
+      "to": "nest.outer"
+     },
+     {
+      "abilities": [],
+      "depth": 5,
+      "expires_in_s": 60,
+      "from": "nest.outer",
+      "may_grant": [
+       "notes.app:add",
+       "notes.app:list",
+       "calc.exec:eval"
+      ],
+      "scope": "box:a7",
+      "to": "door a7"
+     },
+     {
+      "abilities": [],
+      "depth": 4,
+      "expires_in_s": 50,
+      "from": "door a7",
+      "may_grant": [
+       "notes.app:add",
+       "notes.app:list",
+       "calc.exec:eval"
+      ],
+      "scope": "box:a7",
+      "to": "notes.agent"
+     },
+     {
+      "abilities": [
+       "notes.app:add"
+      ],
+      "depth": 0,
+      "expires_in_s": 40,
+      "from": "notes.agent",
+      "may_grant": [],
+      "scope": "box:a7",
+      "to": "notes.app"
+     }
+    ],
+    "door": "door a7"
+   },
+   {
+    "ability": "calc.exec:eval",
+    "cell": "calc.run",
+    "chain": [
+     {
+      "abilities": [],
+      "depth": 6,
+      "expires_in_s": 1013,
+      "from": "owner",
+      "may_grant": [
+       "notes.app:add",
+       "notes.app:list",
+       "calc.exec:eval",
+       "net:connect"
+      ],
+      "scope": "any",
+      "to": "nest.outer"
+     },
+     {
+      "abilities": [],
+      "depth": 5,
+      "expires_in_s": 60,
+      "from": "nest.outer",
+      "may_grant": [
+       "notes.app:add",
+       "notes.app:list",
+       "calc.exec:eval"
+      ],
+      "scope": "box:a7",
+      "to": "door a7"
+     },
+     {
+      "abilities": [],
+      "depth": 4,
+      "expires_in_s": 50,
+      "from": "door a7",
+      "may_grant": [
+       "notes.app:add",
+       "notes.app:list",
+       "calc.exec:eval"
+      ],
+      "scope": "box:a7",
+      "to": "notes.agent"
+     },
+     {
+      "abilities": [
+       "calc.exec:eval"
+      ],
+      "depth": 3,
+      "expires_in_s": 40,
+      "from": "notes.agent",
+      "may_grant": [
+       "calc.exec:eval"
+      ],
+      "scope": "box:a7",
+      "to": "calc.run"
+     }
+    ],
+    "door": "door a7"
+   },
+   {
+    "ability": "calc.exec:eval",
+    "cell": "calc.exec",
+    "chain": [
+     {
+      "abilities": [],
+      "depth": 6,
+      "expires_in_s": 1013,
+      "from": "owner",
+      "may_grant": [
+       "notes.app:add",
+       "notes.app:list",
+       "calc.exec:eval",
+       "net:connect"
+      ],
+      "scope": "any",
+      "to": "nest.outer"
+     },
+     {
+      "abilities": [],
+      "depth": 5,
+      "expires_in_s": 60,
+      "from": "nest.outer",
+      "may_grant": [
+       "notes.app:add",
+       "notes.app:list",
+       "calc.exec:eval"
+      ],
+      "scope": "box:a7",
+      "to": "door a7"
+     },
+     {
+      "abilities": [],
+      "depth": 4,
+      "expires_in_s": 50,
+      "from": "door a7",
+      "may_grant": [
+       "notes.app:add",
+       "notes.app:list",
+       "calc.exec:eval"
+      ],
+      "scope": "box:a7",
+      "to": "notes.agent"
+     },
+     {
+      "abilities": [
+       "calc.exec:eval"
+      ],
+      "depth": 3,
+      "expires_in_s": 40,
+      "from": "notes.agent",
+      "may_grant": [
+       "calc.exec:eval"
+      ],
+      "scope": "box:a7",
+      "to": "calc.run"
+     },
+     {
+      "abilities": [],
+      "depth": 2,
+      "expires_in_s": 30,
+      "from": "calc.run",
+      "may_grant": [
+       "calc.exec:eval"
+      ],
+      "scope": "box:a7 box:a7/b2",
+      "to": "door a7/b2"
+     },
+     {
+      "abilities": [
+       "calc.exec:eval"
+      ],
+      "depth": 0,
+      "expires_in_s": 20,
+      "from": "door a7/b2",
+      "may_grant": [],
+      "scope": "box:a7 box:a7/b2",
+      "to": "calc.exec"
+     }
+    ],
+    "door": "door a7/b2"
+   }
+  ],
+  "ms": 11,
+  "note": {
+   "argv": [
+    "notes",
+    "add",
+    "in.json",
+    "order 3*4 bolts (= 12)",
+    "out.json"
+   ],
+   "id": 1,
+   "text": "order 3*4 bolts (= 12)"
+  },
+  "notes": []
+ },
+ "prove": {
+  "all_refused": true,
+  "isolation": "bwrap",
+  "refusals": [
+   {
+    "attempts": [
+     {
+      "how": "a caller asks nest.outer for notes.app:add",
+      "result": {
+       "refused": "nest.outer exports only Do, Prove, render:tree; \"notes.app:add\" is not one of them. notes.agent, notes.app, calc.run and calc.exec are inside box a7 and have no address outside it"
+      }
+     },
+     {
+      "how": "nest.outer hands door a7 its own unscoped chain and asks for notes.app:add",
+      "result": {
+       "refused": "door a7 refused: capability does not grant 'notes.app:add'"
+      }
+     }
+    ],
+    "name": "an inner cell called from outside"
+   },
+   {
+    "attempts": [
+     {
+      "how": "notes.agent asks door a7 for net:connect with its chain",
+      "result": {
+       "refused": "door a7 refused: capability does not grant 'net:connect'"
+      }
+     },
+     {
+      "how": "notes.agent asks door a7 to relay a call out of the box",
+      "result": {
+       "refused": "door a7: net:connect is not in [box.uplink] of box a7 (empty), so there is nothing to relay it to"
+      }
+     },
+     {
+      "how": "notes.agent opens TCP to 1.1.1.1:443 itself",
+      "result": {
+       "refused": "refused by the box: connect 1.1.1.1:443: Network is unreachable (os error 101)"
+      }
+     }
+    ],
+    "name": "an inner cell calling outside its uplink"
+   },
+   {
+    "attempts": [
+     {
+      "how": "notes.agent mints notes.app:delete for notes.app (it may grant only notes.app:add, notes.app:list, calc.exec:eval)",
+      "result": {
+       "refused": "cap v3 mint refused: refusing to mint: abilities exceed the parent's grant"
+      }
+     },
+     {
+      "how": "notes.agent signs that link by hand and notes.app uses it",
+      "result": {
+       "refused": "door a7 refused: link 3: abilities exceed the parent's grant"
+      }
+     },
+     {
+      "how": "notes.agent signs a link with depth 9 below its depth 4",
+      "result": {
+       "refused": "door a7 refused: link 3: delegation depth exceeds the parent"
+      }
+     }
+    ],
+    "name": "a right wider than delegated"
+   },
+   {
+    "attempts": [
+     {
+      "how": "calc.exec, holding a valid chain, opens TCP to 1.1.1.1:53",
+      "refused": true,
+      "result": {
+       "refused": "refused by the box: connect 1.1.1.1:53: Network is unreachable (os error 101)"
+      }
+     }
+    ],
+    "name": "box a7/b2 reaching the network"
+   }
+  ]
+ },
+ "idle": {
+  "how": "60 s with no caller, read from the unit's cgroup (cpu.stat, voluntary context switches of every thread); cell-audit idle shows the same: 0.0% CPU, 0.0 wake-ups/s.",
+  "procs": 7,
+  "threads": 8,
+  "cpu_pct": 0.0,
+  "wakeups_s": 0.0,
+  "rss_mb": 2,
+  "ttl": "nest.outer exits at its 900 s lease and both boxes end with it (bwrap --die-with-parent); the unit also has RuntimeMaxSec=960."
+ }
+}

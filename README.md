@@ -48,6 +48,22 @@ door a7/b2 let calc.exec use calc.exec:eval:
    right is refused at the door, and so is a link deeper than its parent.
 4. **Box a7/b2 reaching the network.** `calc.exec` holds a valid chain, and its TCP connect still fails.
 
+## Recorded run (2026-11-21)
+
+`nest.outer` ran on foreman-ops-1 (aarch64, bubblewrap 0.8.0) as a systemd user unit, and was called from a
+second machine (Debian, x86_64) over the tailnet:
+
+- `Do { AddNote { "order 3*4 bolts" } }` returned note 1, `order 3*4 bolts (= 12)`, in 11 ms through both
+  boxes. Three doors accepted chains of 4, 4 and 6 links, as printed above.
+- `Prove`: all four refusals held. The two network attempts failed with `Network is unreachable` from inside
+  each box.
+- A direct call to `notes.app:add` was refused: it is not exported.
+- Idle, measured for 60 s from the unit's cgroup: 7 processes, 8 threads, 0.00% CPU, 0 wake-ups per second, 2 MB.
+- `cell-check conform`: no CES-1 findings (budget, tight-timer, conn-per-call). The remaining finding is
+  `api-crate`: there is no separate typed-contract crate yet.
+
+The full record is [docs/run.json](docs/run.json).
+
 ## Run it
 
 You need Rust and, for real boxes, bubblewrap (`apt install bubblewrap`) on a kernel that allows unprivileged
