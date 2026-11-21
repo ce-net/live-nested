@@ -35,3 +35,16 @@ inner = ["notes.app:add", "notes.app:list", "calc.exec:eval"]
 
 [box.uplink]
 abilities = []
+
+[stamp]
+id = "cell:nest.outer"
+kind = "cell"
+path = "cell.toml"
+updated_at = 2026-11-21T06:31:24Z
+version = "0.1.0"
+access = "public"
+canonical_of = []
+duplicate_of = ""
+owner = "foreman/ce-net"
+source_of_truth = "https://github.com/ce-net/live-nested"
+stale_after = 180
