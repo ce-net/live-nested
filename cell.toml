@@ -14,11 +14,14 @@ disk_bytes = "64M"
 [budget]
 mem_bytes = "64M"
 pids = 16
-ttl_s = 900
 
 [[budget.timer]]
 name = "ttl"
 idle_ms = 900000
+
+# CES-2 lifecycle: a lease; nest.outer exits at it and both boxes end with it (systemd RuntimeMaxSec as a backstop)
+[lifecycle]
+ttl_s = 900
 
 [box]
 isolation = "I1"   # bubblewrap: own user, pid, net, ipc, uts and mount namespaces, no network

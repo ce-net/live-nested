@@ -47,7 +47,7 @@ struct Outer {
 }
 
 fn outer(a: &[String]) {
-    let listen = arg(a, "--listen", "127.0.0.1:7790");
+    let listen = arg(a, "--listen", "127.0.0.1:7790"); // cell-check: allow hardcoded-host (loopback default)
     let ttl: u64 = arg(a, "--ttl", "900").parse().unwrap_or(900);
     let home = PathBuf::from(arg(a, "--home", &std::env::temp_dir().join(format!("live-nested-{}", std::process::id())).to_string_lossy()));
     let iso = Iso::parse(&arg(a, "--box", "bwrap"));
@@ -277,6 +277,8 @@ fn door(a: &[String]) {
     }
     let _ = std::fs::remove_file(&sock);
     let l = std::os::unix::net::UnixListener::bind(&sock).unwrap_or_else(|e| fail(&format!("{}: {e}", sock.display())));
+    println!("ready");
+    std::io::stdout().flush().ok();
     for s in l.incoming().flatten() {
         let mut c = Conn::new(s);
         if c.send(&json!({"hello": "door", "path": d.path.join("/"), "key": key_hex(&d.me.key())})).is_err() {
@@ -445,10 +447,11 @@ impl Door {
 
     fn calc_probe(&mut self, links: Links) -> Result<Value, String> {
         let (_, v) = self.exec_link(&links)?;
-        let net = try_connect("1.1.1.1:53");
+        let net = try_connect("1.1.1.1:53"); // cell-check: allow hardcoded-host (the probe target: an outside address)
         let ok = net.starts_with("connected");
         Ok(json!({
             "levels": [self.level("calc.exec", "calc.exec:eval", &v)],
+            // cell-check: allow hardcoded-host (names the probe target)
             "attempts": [{"how": "calc.exec, holding a valid chain, opens TCP to 1.1.1.1:53", "refused": !ok, "result": if ok { json!({"connected": net}) } else { refused(&net) }}]
         }))
     }
@@ -464,11 +467,12 @@ impl Door {
             Err(e) => refused(format!("door {} refused: {e}", self.path.join("/"))),
         };
         let uplink = refused(format!("door {}: net:connect is not in [box.uplink] of box {} (empty), so there is nothing to relay it to", self.path.join("/"), self.path.join("/")));
-        let net = try_connect("1.1.1.1:443");
+        let net = try_connect("1.1.1.1:443"); // cell-check: allow hardcoded-host (the probe target: an outside address)
         let raw = if net.starts_with("connected") { json!({"connected": net}) } else { refused(&net) };
         json!({"attempts": [
             {"how": "notes.agent asks door a7 for net:connect with its chain", "result": cap},
             {"how": "notes.agent asks door a7 to relay a call out of the box", "result": uplink},
+            // cell-check: allow hardcoded-host (names the probe target)
             {"how": "notes.agent opens TCP to 1.1.1.1:443 itself", "result": raw},
         ]})
     }
@@ -521,7 +525,8 @@ fn call(a: &[String]) -> i32 {
             return 2;
         }
     };
-    let s = match std::net::TcpStream::connect(addr) {
+    // the caller CLI: one connection per invocation, held for its one call
+    let s = match std::net::TcpStream::connect(addr) { // cell-check: allow conn-per-call
         Ok(s) => s,
         Err(e) => {
             eprintln!("nest call: {addr}: {e}");

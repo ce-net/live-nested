@@ -19,7 +19,7 @@ use std::collections::BTreeMap;
 use std::io::{BufRead, BufReader, Read, Write};
 use std::path::{Path, PathBuf};
 use std::process::{Child, Command, Stdio};
-use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 pub const NOTES_POLICY: &str = include_str!("../policy/notes.toml");
 /// What `nest.outer` exports: callers anywhere may call these and nothing else (CES-8 `[box.export]`).
@@ -317,21 +317,22 @@ pub fn start_box(iso: Iso, exe_dir: &Path, dir: &Path, door_args: &[String]) -> 
             c
         }
     };
-    cmd.args(door_args).stdin(Stdio::null());
-    let child = cmd.spawn().map_err(|e| format!("start box ({}): {e}", iso.name()))?;
-    let t0 = Instant::now();
-    while !sock.exists() {
-        if t0.elapsed() > Duration::from_secs(10) {
-            return Err(format!("box {}: no door socket after 10 s", dir.display()));
-        }
-        std::thread::sleep(Duration::from_millis(20));
+    cmd.args(door_args).stdin(Stdio::null()).stdout(Stdio::piped());
+    let mut child = cmd.spawn().map_err(|e| format!("start box ({}): {e}", iso.name()))?;
+    // the door writes one line once its socket listens: block on it, no polling (CES-1 rule 2)
+    let mut line = String::new();
+    BufReader::new(child.stdout.take().expect("piped stdout")).read_line(&mut line).map_err(|e| format!("box {}: {e}", dir.display()))?;
+    if line.trim() != "ready" || !sock.exists() {
+        let _ = child.kill();
+        return Err(format!("box {}: the door did not start ({:?})", dir.display(), line.trim()));
     }
     Ok(Boxed { child, sock })
 }
 
 /// Connect to a box's door; the first line is its hello with its key.
 pub fn dial(sock: &Path) -> Result<(Conn<std::os::unix::net::UnixStream>, Key), String> {
-    let s = std::os::unix::net::UnixStream::connect(sock).map_err(|e| format!("{}: {e}", sock.display()))?;
+    // one held connection per box, opened once when the holder starts it
+    let s = std::os::unix::net::UnixStream::connect(sock).map_err(|e| format!("{}: {e}", sock.display()))?; // cell-check: allow conn-per-call
     s.set_read_timeout(Some(Duration::from_secs(20))).ok();
     let mut c = Conn::new(s);
     let hello = c.recv()?.ok_or("door closed before its hello")?;
