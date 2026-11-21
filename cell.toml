@@ -1,0 +1,34 @@
+# nest.outer: a holder cell (CES-8). From outside it is one cell with a typed contract; inside, box a7 holds an
+# inner door with notes.agent, notes.app and calc.run, and calc.run holds box a7/b2 with calc.exec.
+[cell]
+api = "nest.outer"
+crate = "live-nested"
+kind = "holder"
+owner = "ce-net"
+depends_on = []
+
+[limits]
+disk_bytes = "64M"
+
+# CES-1: every process blocks on its socket; the one timer is the ttl lease (one wake-up at the end).
+[budget]
+mem_bytes = "64M"
+pids = 16
+ttl_s = 900
+
+[[budget.timer]]
+name = "ttl"
+idle_ms = 900000
+
+[box]
+isolation = "I1"   # bubblewrap: own user, pid, net, ipc, uts and mount namespaces, no network
+nest_max = 4
+
+[box.export.Do]
+inner = ["notes.app:add", "notes.app:list", "calc.exec:eval"]
+
+[box.export.Prove]
+inner = ["notes.app:add", "notes.app:list", "calc.exec:eval"]
+
+[box.uplink]
+abilities = []

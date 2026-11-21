@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nested cells</title>
+<meta name="description" content="A live system of recursive containers and recursive narrowed capabilities on ce-net (CES-8).">
+<link rel="stylesheet" href="tokens.css">
+<style>
+  body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--sans,system-ui,sans-serif);line-height:1.5}
+  main{max-width:960px;margin:0 auto;padding:32px 16px 64px}
+  h1{font-size:clamp(26px,5vw,38px);margin:0 0 8px;letter-spacing:-.01em}
+  h2{font-size:20px;margin:40px 0 12px}
+  p,li{color:var(--ink-2);max-width:72ch}
+  a{color:var(--acc)}
+  code,pre,.mono{font-family:var(--mono,ui-monospace,monospace);font-size:13px}
+  .tabs{display:flex;gap:8px;margin:24px 0 16px;flex-wrap:wrap}
+  .tabs button{background:var(--well);color:var(--ink);border:1px solid var(--line-2);border-radius:999px;padding:8px 16px;font:inherit;cursor:pointer}
+  .tabs button[aria-selected="true"]{background:var(--acc);color:var(--acc-ink);border-color:var(--acc)}
+  .badge{display:inline-block;font-size:12px;padding:2px 10px;border-radius:999px;border:1px solid var(--line-2);color:var(--ink-2);margin-left:8px}
+  .badge.sim{border-color:var(--warn,#e5b84a);color:var(--warn,#e5b84a)}
+  .badge.real{border-color:var(--ok,#4ac27a);color:var(--ok,#4ac27a)}
+  .tree{display:grid;gap:12px}
+  .box{border:1px solid var(--line-2);border-radius:12px;padding:12px 14px;background:var(--surface)}
+  .box .box{background:var(--well)}
+  .box h3{margin:0 0 6px;font-size:15px}
+  .cells{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}
+  .cell{font-family:var(--mono,monospace);font-size:12px;border:1px solid var(--line);border-radius:6px;padding:3px 8px;color:var(--ink-2);transition:all .2s}
+  .cell.on{border-color:var(--acc);color:var(--ink);background:var(--acc-soft)}
+  .chain{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+  table{border-collapse:collapse;width:100%;min-width:640px}
+  th,td{text-align:left;padding:6px 10px;border-bottom:1px solid var(--line);font-size:13px;vertical-align:top}
+  th{color:var(--ink-3);font-weight:500}
+  td.m{font-family:var(--mono,monospace);font-size:12px}
+  .controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:12px 0}
+  .controls button{background:var(--raise);color:var(--ink);border:1px solid var(--line-2);border-radius:8px;padding:8px 14px;font:inherit;cursor:pointer}
+  .controls button:disabled{opacity:.4;cursor:default}
+  .step{color:var(--ink);min-height:3em}
+  .refusal{border-left:3px solid var(--bad,#e5484d);padding:6px 12px;margin:8px 0;background:var(--surface);border-radius:0 8px 8px 0}
+  .refusal b{color:var(--ink)}
+  .refusal .why{font-family:var(--mono,monospace);font-size:12px;color:var(--ink-2);word-break:break-word}
+  .kv{display:grid;grid-template-columns:max-content 1fr;gap:4px 16px;font-size:14px}
+  .kv dt{color:var(--ink-3)} .kv dd{margin:0;color:var(--ink)}
+  [hidden]{display:none!important}
+</style>
+</head>
+<body>
+<main>
+  <h1>Nested cells</h1>
+  <p>A live system on ce-net. <code>nest.outer</code> is one cell with a typed contract. It holds box <code>a7</code>, and inside that box <code>calc.run</code> holds box <code>a7/b2</code>. A call from another machine goes through both boxes. At every boundary the capability chain gains one link with fewer rights, less depth, an earlier expiry and a scope one box deeper. Standard: <a href="https://github.com/ce-net/ce-net-proto/blob/main/docs/standards/CES-8-nesting.md">CES-8</a>. Source: <a href="https://github.com/ce-net/live-nested">ce-net/live-nested</a>.</p>
+
+  <div class="tabs" role="tablist">
+    <button role="tab" id="t-real" aria-selected="true">Recorded run</button>
+    <button role="tab" id="t-sim" aria-selected="false">Simulation</button>
+  </div>
+
+  <section id="real">
+    <h2>Recorded run <span class="badge real">real node</span></h2>
+    <dl class="kv" id="meta"><dt>loading</dt><dd>run.json</dd></dl>
+    <h2>The answer</h2>
+    <div id="answer"></div>
+    <h2>The chain each door accepted</h2>
+    <div id="levels"></div>
+    <h2>Four refusals</h2>
+    <div id="refusals"></div>
+    <h2>Idle cost</h2>
+    <div id="idle"></div>
+  </section>
+
+  <section id="sim" hidden>
+    <h2>Simulation <span class="badge sim">simulation in your browser, not a real run</span></h2>
+    <p>The same steps as the real system, with made-up keys and no network. Step through one <code>Do { AddNote { "order 3*4 bolts" } }</code>.</p>
+    <div class="controls"><button id="prev">Back</button><button id="next">Next step</button><button id="reset">Start over</button><span class="mono" id="count"></span></div>
+    <p class="step" id="say"></p>
+    <div class="tree">
+      <div class="box"><h3>nest.outer <span class="badge">holder, exports Do, Prove, render:tree</span></h3>
+        <div class="cells"><span class="cell" data-c="caller">caller (another machine)</span><span class="cell" data-c="outer">nest.outer</span></div>
+        <div class="box"><h3>box a7 <span class="badge">bwrap, no network</span></h3>
+          <div class="cells"><span class="cell" data-c="doora">door a7</span><span class="cell" data-c="agent">notes.agent</span><span class="cell" data-c="app">notes.app</span><span class="cell" data-c="run">calc.run</span></div>
+          <div class="box"><h3>box a7/b2 <span class="badge">bwrap inside bwrap, no network</span></h3>
+            <div class="cells"><span class="cell" data-c="doorb">door a7/b2</span><span class="cell" data-c="exec">calc.exec</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <h2>Chain so far</h2>
+    <div class="chain"><table><thead><tr><th>from</th><th>to</th><th>uses</th><th>may grant</th><th>depth</th><th>scope</th><th>expires</th></tr></thead><tbody id="simchain"></tbody></table></div>
+  </section>
+</main>
+<script>
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function tab(which){
+  for (const [t, s] of [['t-real','real'],['t-sim','sim']]) {
+    $('#'+t).setAttribute('aria-selected', String(s===which)); $('#'+s).hidden = s!==which;
+  }
+  try { localStorage.setItem('nest-tab', which); } catch(e) {}
+}
+$('#t-real').onclick = () => tab('real'); $('#t-sim').onclick = () => tab('sim');
+try { if (localStorage.getItem('nest-tab') === 'sim') tab('sim'); } catch(e) {}
+
+function chainTable(chain){
+  return '<div class="chain"><table><thead><tr><th>from</th><th>to</th><th>uses</th><th>may grant</th><th>depth</th><th>scope</th><th>expires in</th></tr></thead><tbody>' +
+    chain.map(v => `<tr><td>${esc(v.from)}</td><td>${esc(v.to)}</td><td class="m">${esc(v.abilities.join(', ')||'-')}</td><td class="m">${esc(v.may_grant.join(', ')||'-')}</td><td>${v.depth}</td><td class="m">${esc(v.scope)}</td><td>${v.expires_in_s} s</td></tr>`).join('') +
+    '</tbody></table></div>';
+}
+
+fetch('run.json').then(r => r.json()).then(run => {
+  const d = run.do;
+  $('#meta').innerHTML = [
+    ['recorded', run.recorded], ['node', run.node], ['caller', run.caller], ['isolation', d.isolation], ['round trip', d.ms + ' ms'], ['commit', run.commit]
+  ].map(([k,v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join('');
+  $('#answer').innerHTML = `<pre class="box">${esc(run.request)}\n\nnote #${esc(d.note.id)}  ${esc(d.note.text)}\ncalc ${esc(d.calc.expr)} = ${esc(d.calc.value)}   (calc.exec in box a7/b2)\nnotes.app ran: ${esc((d.note.argv||[]).join(' '))}</pre>`;
+  $('#levels').innerHTML = d.levels.map(l => `<h3>${esc(l.door)} let <code>${esc(l.cell)}</code> use <code>${esc(l.ability)}</code></h3>` + chainTable(l.chain)).join('');
+  $('#refusals').innerHTML = run.prove.refusals.map(r => `<h3>${esc(r.name)}</h3>` + r.attempts.map(a =>
+    `<div class="refusal"><b>${esc(a.how)}</b><div class="why">${a.result.refused ? 'REFUSED: ' + esc(a.result.refused) : 'ACCEPTED: ' + esc(JSON.stringify(a.result))}</div></div>`).join('')).join('') +
+    `<p>All refused: <b>${esc(run.prove.all_refused)}</b></p>`;
+  const i = run.idle;
+  $('#idle').innerHTML = i ? `<p>${esc(i.how)}</p><div class="chain"><table><thead><tr><th>processes</th><th>threads</th><th>CPU</th><th>wake-ups/s</th><th>memory</th></tr></thead><tbody><tr><td>${i.procs}</td><td>${i.threads}</td><td>${i.cpu_pct}% of a core</td><td>${i.wakeups_s}</td><td>${i.rss_mb} MB</td></tr></tbody></table></div><p>${esc(i.ttl)}</p>` : '<p>Not measured yet.</p>';
+}).catch(e => { $('#meta').innerHTML = '<dt>error</dt><dd>' + esc(e) + '</dd>'; });
+
+// ---- simulation: the same steps as the real system, made-up keys, no network
+const ALL = ['notes.app:add','notes.app:list','calc.exec:eval','net:connect'], DO = ALL.slice(0,3), EV = ['calc.exec:eval'];
+const L = (from,to,uses,grant,depth,scope,exp) => ({from,to,abilities:uses,may_grant:grant,depth,scope,expires_in_s:exp});
+const steps = [
+  {on:['outer'], say:'nest.outer starts. The run owner signs one root link to it, held only in memory: it may grant four rights, depth 6, no box scope.', chain:[L('owner','nest.outer',[],ALL,6,'any',1020)]},
+  {on:['caller','outer'], say:'A caller on another machine sends Do { AddNote { "order 3*4 bolts" } }. nest.outer exports Do, so it takes the call.', chain:null},
+  {on:['outer','doora'], say:'To cross into box a7, nest.outer adds one link to door a7: scope box:a7, only the three rights Do declares for the inner network (net:connect is gone), depth 5, 60 s.', add:L('nest.outer','door a7',[],DO,5,'box:a7',60)},
+  {on:['doora','agent'], say:'door a7 gives notes.agent its link, inside the same box, depth 4.', add:L('door a7','notes.agent',[],DO,4,'box:a7',50)},
+  {on:['agent','run'], say:'The scripted agent finds 3*4 and asks calc.run. Its link may use and grant calc.exec:eval only. door a7 checks the whole chain before calc.run acts.', add:L('notes.agent','calc.run',EV,EV,3,'box:a7',40)},
+  {on:['run','doorb'], say:'calc.run is a holder too. One link into box a7/b2: the scope gets one box deeper, depth 2, 30 s.', add:L('calc.run','door a7/b2',[],EV,2,'box:a7 box:a7/b2',30)},
+  {on:['doorb','exec'], say:'door a7/b2 gives calc.exec a use-only link and checks the chain of six links. calc.exec returns 12.', add:L('door a7/b2','calc.exec',EV,[],0,'box:a7 box:a7/b2',20)},
+  {on:['agent','app'], say:'Back in box a7, the agent gives notes.app a use-only link for notes.app:add. door a7 checks it. notes.app runs the notes program through its allowlist and stores "order 3*4 bolts (= 12)".', chain:[L('owner','nest.outer',[],ALL,6,'any',1020),L('nest.outer','door a7',[],DO,5,'box:a7',60),L('door a7','notes.agent',[],DO,4,'box:a7',50),L('notes.agent','notes.app',['notes.app:add'],[],0,'box:a7',40)]},
+  {on:['outer','caller'], say:'The typed answer goes back out: the note, the calculation, and the chain each door accepted. Nothing in either box has a network address.', chain:null},
+  {on:['agent'], say:'Refusal: the agent tries to give notes.app notes.app:delete. cap v3 will not mint it, and a hand-signed copy is refused at door a7.', chain:null},
+  {on:['exec'], say:'Refusal: calc.exec opens TCP to 1.1.1.1:53. The box has no network, so the connect fails even with a valid chain.', chain:null},
+];
+let at = -1, chain = [];
+function show(){
+  chain = [];
+  for (let i = 0; i <= at; i++) { const s = steps[i]; if (s.chain) chain = s.chain.slice(); if (s.add) chain.push(s.add); }
+  const s = steps[at];
+  document.querySelectorAll('.cell').forEach(c => c.classList.toggle('on', !!s && s.on.includes(c.dataset.c)));
+  $('#say').textContent = s ? s.say : 'Press Next step.';
+  $('#simchain').innerHTML = chain.map(v => `<tr><td>${esc(v.from)}</td><td>${esc(v.to)}</td><td class="m">${esc(v.abilities.join(', ')||'-')}</td><td class="m">${esc(v.may_grant.join(', ')||'-')}</td><td>${v.depth}</td><td class="m">${esc(v.scope)}</td><td>${v.expires_in_s} s</td></tr>`).join('');
+  $('#count').textContent = `${Math.max(at+1,0)} / ${steps.length}`;
+  $('#prev').disabled = at < 0; $('#next').disabled = at >= steps.length - 1;
+}
+$('#next').onclick = () => { at = Math.min(at+1, steps.length-1); show(); };
+$('#prev').onclick = () => { at = Math.max(at-1, -1); show(); };
+$('#reset').onclick = () => { at = -1; show(); };
+show();
+</script>
+</body>
+</html>

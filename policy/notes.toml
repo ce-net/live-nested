@@ -1,0 +1,26 @@
+# notes.app: the notes program behind an argument allowlist (wrap-tool, as in `ce wrap`). It reads the notes file
+# given as {in}, adds one note and writes the new file to {out}; no network, no other file, 2 s, 64 MB.
+api = "notes.app"
+license = "Apache-2.0"
+bin = ["notes"]
+version_args = ["--version"]
+prefix = []
+in_ext = ["json"]
+out_ext = ["json"]
+in_magic = false
+coder_prefix = false
+out_required = true
+positional = "text:200:"
+max_in_bytes = 65536
+max_out_bytes = 65536
+max_stdio_bytes = 4096
+timeout_ms = 2000
+cpu_s = 2
+mem_mb = 64
+max_args = 4
+concurrency = 1
+
+[env]
+
+[flags]
+"add" = "none"

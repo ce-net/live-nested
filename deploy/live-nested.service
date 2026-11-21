@@ -1,0 +1,12 @@
+# systemd --user unit for the live system on one node. RuntimeMaxSec is the lease until the runtime enforces
+# ttl_s; nest.outer also exits at --ttl itself, and its boxes end with it.
+[Unit]
+Description=live-nested: nest.outer holder with boxes a7 and a7/b2 (CES-8 live system)
+
+[Service]
+ExecStart=%h/.local/share/live-nested/bin/nest outer --listen ${LISTEN} --ttl 900 --box bwrap --home %h/.local/state/live-nested
+Environment=LISTEN=127.0.0.1:7790
+RuntimeMaxSec=960
+MemoryMax=64M
+TasksMax=32
+Restart=no

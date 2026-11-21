@@ -1,0 +1,28 @@
+[package]
+name = "live-nested"
+version = "0.1.0"
+edition = "2021"
+license = "Apache-2.0"
+description = "A live system of recursive containers and recursive narrowed capabilities (CES-8): a holder cell runs a box with an inner door, an inner cell holds a second box, and every boundary narrows the cap v3 chain."
+repository = "https://github.com/ce-net/live-nested"
+
+[dependencies]
+# cap v3 chains and the CES-8 inner-door check (authorize_inner)
+ce-net-proto = { git = "https://github.com/ce-net/ce-net-proto", rev = "60096ef" }
+# the argument allowlist and limits that wrap a command-line program as a cell (ce wrap)
+wrap-tool = { git = "https://github.com/ce-net/demo-wrap-anything", rev = "8f3ed79" }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+hex = "0.4"
+libc = "0.2"
+
+[[bin]]
+name = "nest"
+path = "src/main.rs"
+
+[[bin]]
+name = "notes"
+path = "src/bin/notes.rs"
+
+[profile.release]
+codegen-units = 4
