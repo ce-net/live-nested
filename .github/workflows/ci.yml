@@ -12,10 +12,11 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: ubuntu-24.04-arm
-            box: bwrap      # the arm runner allows user namespaces: boxes are real here
-          - os: ubuntu-latest
-            box: ""         # bwrap when this runner allows it, else none
+          # 22.04: glibc 2.35, so the binaries run on Debian 12 nodes; both runners allow user namespaces
+          - os: ubuntu-22.04-arm
+            box: bwrap
+          - os: ubuntu-22.04
+            box: bwrap
     runs-on: ${{ matrix.os }}
     timeout-minutes: 30
     steps:
