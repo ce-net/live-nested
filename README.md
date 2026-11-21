@@ -50,7 +50,7 @@ door a7/b2 let calc.exec use calc.exec:eval:
 
 ## Recorded run (2026-11-21)
 
-`nest.outer` ran on foreman-ops-1 (aarch64, bubblewrap 0.8.0) as a systemd user unit, and was called from a
+`nest.outer` ran on an aarch64 node (bubblewrap 0.8.0) as a systemd user unit, and was called from a
 second machine (Debian, x86_64) over the tailnet:
 
 - `Do { AddNote { "order 3*4 bolts" } }` returned note 1, `order 3*4 bolts (= 12)`, in 11 ms through both

@@ -1,9 +1,9 @@
 {
  "recorded": "2026-11-21 06:30 UTC",
- "node": "foreman-ops-1 (aarch64, Debian 12, bubblewrap 0.8.0), systemd --user unit live-nested",
- "caller": "debian (x86_64), a second machine, over the tailnet: nest call 100.122.10.18:7795",
+ "node": "an aarch64 node (Debian 12, bubblewrap 0.8.0), systemd --user unit live-nested",
+ "caller": "a second machine (x86_64), over the tailnet: nest call <node>:7795",
  "commit": "ce-net/live-nested 2f4e704, binaries from CI run 44875656268",
- "request": "nest call 100.122.10.18:7795 '{\"Do\":{\"AddNote\":{\"text\":\"order 3*4 bolts\"}}}'",
+ "request": "nest call <node>:7795 '{\"Do\":{\"AddNote\":{\"text\":\"order 3*4 bolts\"}}}'",
  "do": {
   "calc": {
    "expr": "3*4",
